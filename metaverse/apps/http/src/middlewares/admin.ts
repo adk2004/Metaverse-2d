@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import { env } from "../env";
 
 interface JwtPayload {
   role: string;
@@ -27,7 +26,7 @@ export const adminMiddleware = (
     return;
   }
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
     if(decoded.role !== "Admin") {
       res.status(403).json({ message: "Forbidden: Admins only" });
       return;

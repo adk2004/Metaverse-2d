@@ -6,7 +6,6 @@ import client from "../../../../../packages/db/dist/index";
 import bcrypt from "bcrypt";
 import { SignUpSchema,SignInSchema } from "../../types";
 import jwt from "jsonwebtoken";
-import { env } from "../../env";
 import { userMiddleware } from "../../middlewares/user";
 
 export const router = Router();
@@ -68,7 +67,7 @@ router.post('/signin',async (req,res) => {
             return;
         }
         // generate JWT toeken based on role
-        const token = jwt.sign({ userId: user.id, role: user.role }, env.JWT_SECRET, { expiresIn: '5h' });
+        const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET as string, { expiresIn: '5h' });
         res.status(200).json({
             token,
         });
