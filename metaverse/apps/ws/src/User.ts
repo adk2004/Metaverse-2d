@@ -3,7 +3,7 @@ import { RoomManager } from "./RoomManager";
 import { verify, JwtPayload } from "jsonwebtoken";
 import { OutgoingMessage } from "./types";
 import { HEIGHT, WIDTH } from "./constants";
-import client from "../../../packages/db/dist/index"
+import client from "@repo/db/client"
 
 const generateID = () => {
     const charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789_*";

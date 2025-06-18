@@ -1078,15 +1078,10 @@ describe("Websocket tests", () => {
     ws1 = new WebSocket(WS_URL);
 
     ws1.on("message", (data) => {
-      console.log("got back data 1");
-      console.log(data.toString());
-
       ws1Messages.push(JSON.parse(data.toString()));
     });
     ws2 = new WebSocket(WS_URL);
     ws2.on("message", (data) => {
-      console.log("got back data 2");
-      console.log(data.toString());
       ws2Messages.push(JSON.parse(data.toString()));
     });
 

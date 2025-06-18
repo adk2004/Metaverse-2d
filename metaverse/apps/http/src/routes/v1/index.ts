@@ -2,8 +2,8 @@ import { Router } from "express";
 import { spaceRouter } from "./space";
 import { userRouter } from "./user";
 import { adminRouter } from "./admin";
-import client from "../../../../../packages/db/dist/index";
-import bcrypt from "bcrypt";
+import client from "@repo/db/client";
+import {hash,compare} from "../../scrypt";
 import { SignUpSchema,SignInSchema } from "../../types";
 import jwt from "jsonwebtoken";
 import { userMiddleware } from "../../middlewares/user";
@@ -25,7 +25,7 @@ router.post('/signup',async (req,res) => {
             res.status(400).json({"message": "Username already exists"});
             return;
         }
-        const hashPassword = await bcrypt.hash(password, 10);
+        const hashPassword = await hash(password);
         const newUser = await client.user.create({
             data: {
                 username: username,
@@ -61,7 +61,7 @@ router.post('/signin',async (req,res) => {
             res.status(403).json({"message": "Invalid username"});
             return;
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await compare(password, user.password);
         if (!isPasswordValid) {
             res.status(403).json({"message": "Invalid password"});
             return;
@@ -69,7 +69,7 @@ router.post('/signin',async (req,res) => {
         // generate JWT toeken based on role
         const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET as string, { expiresIn: '5h' });
         res.status(200).json({
-            token,
+            "token": token
         });
         return;
     } catch (error: any) {
