@@ -97,7 +97,6 @@ export class User {
                         }, this, this.spaceId!)
                     break;
                 case "move":
-                    console.log("Movement Request")
                     const newX = parsedData.payload.x
                     const newY = parsedData.payload.y
                     const xD = Math.abs(this.x - newX);
@@ -105,7 +104,6 @@ export class User {
                     // check wether this movement is valid
                     let isMovementValid = !isColliding(this.spaceId!, this) && ((xD == 1 && yD == 0) || (xD == 0 && yD == 1))
                     if (isMovementValid) {
-                        console.log("Valid movement")
                         this.x = newX
                         this.y = newY;
                         RoomManager.getInstance().broadcast({
@@ -118,7 +116,6 @@ export class User {
                         }, this, this.spaceId!)
                     }
                     else {
-                        console.log("Invalid Movement")
                         this.send({
                             type : "movement-rejected",
                             payload: {

@@ -48,7 +48,6 @@ describe("Authentication", () => {
       password,
       type: "admin",
     });
-
     expect(response.status).toBe(200);
     const updatedResponse = await axios.post(`${BACKEND_URL}/api/v1/signup`, {
       username,

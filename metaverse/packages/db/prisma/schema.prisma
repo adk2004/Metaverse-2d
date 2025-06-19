@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -15,74 +9,74 @@ datasource db {
 }
 
 model User {
-  id       String  @id @unique @default(cuid())
-  username String  @unique
-  password String  
-  avatarId String?
-  role     Role
-  spaceElements   Space[]
-  mapElements     Map[]
-  avatar Avatar? @relation(fields: [avatarId],references: [id])
+  id            String  @id @unique @default(cuid())
+  username      String  @unique
+  password      String
+  avatarId      String?
+  role          Role
+  mapElements   Map[]
+  spaceElements Space[]
+  avatar        Avatar? @relation(fields: [avatarId], references: [id])
 }
 
 model Space {
-  id        String  @id @unique @default(cuid())
+  id        String          @id @unique @default(cuid())
   name      String
   width     Int
   height    Int
   thumbnail String?
   creatorId String
-  creator   User    @relation(fields: [creatorId], references: [id])
+  creator   User            @relation(fields: [creatorId], references: [id])
   elements  SpaceElements[]
 }
 
 model SpaceElements {
-  id        String @id @unique @default(cuid())
+  id        String  @id @unique @default(cuid())
   elementId String
   spaceId   String
   x         Int
   y         Int
-  space      Space @relation(fields: [spaceId], references: [id])
-  element    Element @relation(fields: [elementId], references: [id])
+  element   Element @relation(fields: [elementId], references: [id])
+  space     Space   @relation(fields: [spaceId], references: [id])
 }
 
 model Element {
-  id       String @id @unique @default(cuid())
+  id       String          @id @unique @default(cuid())
   width    Int
   height   Int
   imageUrl String
-  static   Boolean
   name     String?
-  spaces SpaceElements[]
-  maps MapElements[]
+  static   Boolean
+  maps     MapElements[]
+  spaces   SpaceElements[]
 }
 
 model Map {
-  id     String  @id @unique @default(cuid())
-  width  Int
-  height Int
-  name   String
-  thumbnail String?
+  id        String        @id @unique @default(cuid())
+  width     Int
+  height    Int
+  name      String
   creatorId String
-  creator User    @relation(fields: [creatorId], references: [id])
-  elements MapElements[]
+  thumbnail String?
+  creator   User          @relation(fields: [creatorId], references: [id])
+  elements  MapElements[]
 }
 
 model MapElements {
-  id        String  @id @unique @default(cuid())
+  id        String   @id @unique @default(cuid())
   mapId     String
   elementId String?
   x         Int?
   y         Int?
-  map       Map     @relation(fields: [mapId], references: [id])
   element   Element? @relation(fields: [elementId], references: [id])
+  map       Map      @relation(fields: [mapId], references: [id])
 }
 
 model Avatar {
-  id       String  @id @unique @default(cuid())
+  id       String @id @unique @default(cuid())
   imageUrl String
   name     String
-  users User[]  
+  users    User[]
 }
 
 enum Role {
