@@ -1,9 +1,8 @@
-version: '3.8'
-
-services :
-  builder:
-    image: base_builder
-  http: 
+services:
+  http:
+    build:
+      context: .
+      dockerfile: apps/http/Dockerfile
     image: http_image
     ports:
       - "3000:3000"
@@ -11,7 +10,11 @@ services :
       - HTTP_PORT=3000
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_URL=${DATABASE_URL}
+
   ws:
+    build:
+      context: .
+      dockerfile: apps/ws/Dockerfile
     image: ws_image
     ports:
       - "3001:3001"
