@@ -10,6 +10,8 @@ services:
       - HTTP_PORT=3000
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
 
   ws:
     build:
@@ -22,3 +24,12 @@ services:
       - WS_PORT=3001
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_URL=${DATABASE_URL}
+  redis:
+    image: redis:latest
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

@@ -951,7 +951,7 @@ describe("Admin endpoints", () => {
 });
 
 // Tricky part
-describe.skip("Websocket tests", () => {
+describe("Websocket tests", () => {
   let adminId;
   let adminToken;
   let userId;
