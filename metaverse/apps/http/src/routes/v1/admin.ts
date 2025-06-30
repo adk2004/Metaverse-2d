@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { CreateAvatarSchema, CreateElementSchema, createMapSchema, UpdateElementSchema } from "../../types";
 import client from "@repo/db/client";
+import { redis } from "../../redis";
 import { adminMiddleware } from "../../middlewares/admin";
 export const adminRouter = Router();
 
 adminRouter.post('/element', adminMiddleware, async (req,res) => {
+    await redis.del("elementsList");
     const parsedData = CreateElementSchema.safeParse(req.body);
     if(!parsedData.success || !parsedData.data) {
         res.status(400).json({
@@ -33,6 +35,7 @@ adminRouter.post('/element', adminMiddleware, async (req,res) => {
     }
 })
 adminRouter.put('/element/:elementId', adminMiddleware,async (req,res) => {
+    await redis.del("elementsList");
     const parsedData = UpdateElementSchema.safeParse(req.body);
     if(!parsedData.success || !parsedData.data) {
         res.status(400).json({
@@ -60,6 +63,7 @@ adminRouter.put('/element/:elementId', adminMiddleware,async (req,res) => {
     }
 })
 adminRouter.post('/avatar',adminMiddleware, async (req,res) => {
+    await redis.del("avatarList");
     const parsedData = CreateAvatarSchema.safeParse(req.body);
     if(!parsedData.success || !parsedData.data) {
         res.status(400).json({

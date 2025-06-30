@@ -3,26 +3,28 @@ import { spaceRouter } from "./space";
 import { userRouter } from "./user";
 import { adminRouter } from "./admin";
 import client from "@repo/db/client";
-import {hash,compare} from "../../scrypt";
-import { SignUpSchema,SignInSchema } from "../../types";
+import { hash, compare } from "../../scrypt";
+import { SignUpSchema, SignInSchema } from "../../types";
 import jwt from "jsonwebtoken";
+import { redis } from "../../redis";
 import { userMiddleware } from "../../middlewares/user";
 
 export const router = Router();
 
-router.post('/signup',async (req,res) => {
+
+router.post('/signup', async (req, res) => {
     const parsedData = SignUpSchema.safeParse(req.body);
-    if(!parsedData.success) {
-        res.status(400).json({"message": "Invalid data", "errors": parsedData.error.errors});
+    if (!parsedData.success) {
+        res.status(400).json({ "message": "Invalid data", "errors": parsedData.error.errors });
         return;
     }
     try {
-        const { username,password,type } = parsedData.data;
+        const { username, password, type } = parsedData.data;
         const existingUser = await client.user.findFirst({
             where: { username: username }
         });
         if (existingUser) {
-            res.status(400).json({"message": "Username already exists"});
+            res.status(400).json({ "message": "Username already exists" });
             return;
         }
         const hashPassword = await hash(password);
@@ -34,22 +36,22 @@ router.post('/signup',async (req,res) => {
             }
         });
         if (!newUser) {
-            res.status(400).json({"message": "Failed to create user"});
+            res.status(400).json({ "message": "Failed to create user" });
             return;
         }
         res.status(200).json({
             "userId": newUser.id,
         });
-        return ;
+        return;
     } catch (error: any) {
-        res.status(400).json({"message": "Internal Server Error", "error": error.message});
+        res.status(400).json({ "message": "Internal Server Error", "error": error.message });
         return;
     }
 })
-router.post('/signin',async (req,res) => {
+router.post('/signin', async (req, res) => {
     const parsedData = SignInSchema.safeParse(req.body);
-    if(!parsedData.success) {
-        res.status(400).json({"message": "Invalid data", "errors": parsedData.error.errors});
+    if (!parsedData.success) {
+        res.status(400).json({ "message": "Invalid data", "errors": parsedData.error.errors });
         return;
     }
     try {
@@ -58,12 +60,12 @@ router.post('/signin',async (req,res) => {
             where: { username: username }
         });
         if (!user) {
-            res.status(403).json({"message": "Invalid username"});
+            res.status(403).json({ "message": "Invalid username" });
             return;
         }
         const isPasswordValid = await compare(password, user.password);
         if (!isPasswordValid) {
-            res.status(403).json({"message": "Invalid password"});
+            res.status(403).json({ "message": "Invalid password" });
             return;
         }
         // generate JWT toeken based on role
@@ -73,12 +75,18 @@ router.post('/signin',async (req,res) => {
         });
         return;
     } catch (error: any) {
-        res.status(403).json({"message": "Internal Server Error", "error": error.message});
+        res.status(403).json({ "message": "Internal Server Error", "error": error.message });
     }
 });
-
-router.get('/avatars',userMiddleware, async (req,res) => {
+router.get('/avatars', userMiddleware, async (req, res) => {
     try {
+        const cachedData = await redis.get('avatarList');
+        if(cachedData) {
+            res.status(200).json({
+                "avatars": JSON.parse(cachedData),
+            });
+            return;
+        }
         const avatars = await client.avatar.findMany({
             select: {
                 id: true,
@@ -86,20 +94,28 @@ router.get('/avatars',userMiddleware, async (req,res) => {
                 imageUrl: true,
             }
         })
+        await redis.set('avatarList',JSON.stringify(avatars),'EX',60*3);
         res.status(200).json({
             "avatars": avatars,
         });
-    return;
-} catch (error) {
-    res.status(500).json({
-        "message": "Internal Server Error",
-        "error": error instanceof Error ? error.message : "Unknown error"
-    });
-    return;
-}
+        return;
+    } catch (error) {
+        res.status(500).json({
+            "message": "Internal Server Error",
+            "error": error instanceof Error ? error.message : "Unknown error"
+        });
+        return;
+    }
 })
-router.get('/elements', userMiddleware, async (req,res) => {
+router.get('/elements', userMiddleware, async (req, res) => {
     try {
+        const cachedData = await redis.get('elementsList');
+        if(cachedData){
+            res.status(200).json({
+                "elements": JSON.parse(cachedData),
+            });
+            return;
+        }
         const elements = await client.element.findMany({
             select: {
                 id: true,
@@ -107,24 +123,25 @@ router.get('/elements', userMiddleware, async (req,res) => {
                 height: true,
                 width: true,
                 imageUrl: true,
-                static : true
+                static: true
             }
         });
+        await redis.set('elementsList', JSON.stringify(elements),'EX',600);
         res.status(200).json({
             "elements": elements,
         });
     } catch (error) {
         res.status(500).json({
-            "message": "Internal Server Error", 
+            "message": "Internal Server Error",
             "error": error instanceof Error ? error.message : "Unknown error"
         });
     }
 });
-router.get('/test', (req,res) => {
-    res.json({
+router.get('/test', (req, res) => {
+    res.status(200).json({
         message: "Test Success All Good"
     })
 });
-router.use("/user",userRouter);
-router.use("/space",spaceRouter);
-router.use("/admin",adminRouter);
+router.use("/user", userRouter);
+router.use("/space", spaceRouter);
+router.use("/admin", adminRouter);

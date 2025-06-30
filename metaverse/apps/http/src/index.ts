@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/v1", router);
 
-app.listen(process.env.HTTP_PORT, (error)=> {
+app.listen(parseInt(process.env.HTTP_PORT!), '0.0.0.0', (error)=> {
     if(error)
         console.error(error);
     else 

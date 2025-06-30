@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AddElementSchema, CreateSpaceSchema, DeleteElementSchema } from "../../types";
 import client from "@repo/db/client"
+import { redis } from "../../redis";
 import { userMiddleware } from "../../middlewares/user";
 export const spaceRouter = Router();
 
@@ -12,6 +13,7 @@ spaceRouter.post('/', userMiddleware ,async (req,res)=> {
         });
         return;
     }
+    await redis.del("spaceList");
     const {name, dimensions, mapId} = parsedData.data
     if(!mapId){
         const newSpace = await client.space.create({
@@ -68,6 +70,11 @@ spaceRouter.post('/', userMiddleware ,async (req,res)=> {
     return;
 })
 spaceRouter.get('/all',userMiddleware, async (req,res) => {
+    const cachedData = await redis.get("spaceList");
+    if(cachedData){
+        res.status(200).json({"spaces" : JSON.parse(cachedData)});
+        return;
+    }
     const spaces = await client.space.findMany({
         where: {
             creatorId: req.userId
@@ -80,14 +87,16 @@ spaceRouter.get('/all',userMiddleware, async (req,res) => {
             width : true,
         }
     })
-    res.status(200).json({"spaces" : spaces.map((space) => {
+    const spaceList = spaces.map((space) => {
         return {
-            name : space.name,
-            id : space.id,
-            thumbnail : space.thumbnail,
-            dimensions : `${space.width}x${space.height}`
+            name: space.name,
+            id: space.id,
+            thumbnail: space.thumbnail,
+            dimensions: `${space.width}x${space.height}`
         }
-    })});
+    })
+    await redis.set("spaceList",JSON.stringify(spaceList), 'EX',600);
+    res.status(200).json({"spaces" : spaceList});
 })
 // add an element to a space
 spaceRouter.post('/element',userMiddleware, async (req,res) => {
@@ -129,6 +138,7 @@ spaceRouter.post('/element',userMiddleware, async (req,res) => {
         y,
     }
    });
+   await redis.del(`space:${spaceId}`);
    res.status(200).json({
        "message" : "Element added to space successfully"
    });
@@ -168,12 +178,18 @@ spaceRouter.delete('/element',userMiddleware, async (req,res) => {
             id: id,
         }
     });
+    await redis.del(`space:${element.spaceId}`);
     res.status(200).json({
         message : "Element Deleted Successfully"
     });
     return;
 })
 spaceRouter.get('/:spaceId', userMiddleware,async (req,res) => {
+    const cachedData = await redis.get(`space:${req.params.spaceId}`);
+    if (cachedData) {
+        res.status(200).json(JSON.parse(cachedData));
+        return;
+    }
     const space = await client.space.findUnique({
         where : {
             id : req.params.spaceId,
@@ -190,7 +206,7 @@ spaceRouter.get('/:spaceId', userMiddleware,async (req,res) => {
         res.status(404).json({message: "Space not found"});
         return;
     }
-    res.status(200).json({
+    const data = {
         id: space.id,
         name: space.name,
         dimensions: `${space.width}x${space.height}`,
@@ -203,7 +219,9 @@ spaceRouter.get('/:spaceId', userMiddleware,async (req,res) => {
                 imageUrl: e.element.imageUrl
             }
         })
-    });
+    }
+    await redis.set(`space:${req.params.spaceId}`,JSON.stringify(data));
+    res.status(200).json(data);
 });
 spaceRouter.delete('/:spaceId',userMiddleware, async (req,res) =>{
     const spaceId = req.params.spaceId;
@@ -232,6 +250,7 @@ spaceRouter.delete('/:spaceId',userMiddleware, async (req,res) =>{
                 id: space.id
             }
         });
+        await redis.del(`space:${spaceId}`)
         res.status(200).json({
             "message" : "Space deleted successfully"
         });
