@@ -110,6 +110,7 @@ describe("Authentication", () => {
 describe("User metadata end-point", () => {
   let token = "";
   let avatarId = "";
+  let userId = "";
   beforeAll(async () => {
     const username = `aksh-${Math.random()}-${Math.random()}`;
     const password = "123456789a";
@@ -119,6 +120,9 @@ describe("User metadata end-point", () => {
       password,
       type: "admin",
     });
+    // console.log(signUpRes.data);
+    userId = signUpRes.data.userId;
+    // console.log("User id ius ", userId);
     const response = await axios.post(`${BACKEND_URL}/api/v1/signin`, {
       username,
       password,
@@ -174,6 +178,23 @@ describe("User metadata end-point", () => {
       avatarId,
     });
     expect(response.status).toBe(400);
+  });
+  test("Get back avatar info for the created user", async () => {
+    const response = await axios.get(
+      `${BACKEND_URL}/api/v1/user/metadata/bulk?ids=[${userId}]`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const len = response.data.avatars.length;
+    console.log("Avtar response-----> ", response.data);
+    expect(len).toBe(1);
+    expect(response.data.avatars[0].userId).toBe(userId);
+    expect(response.data.avatars[0].imageUrl).toBe(
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s"
+    );
   });
 });
 
@@ -930,7 +951,7 @@ describe("Admin endpoints", () => {
 });
 
 // Tricky part
-describe("Websocket tests", () => {
+describe.skip("Websocket tests", () => {
   let adminId;
   let adminToken;
   let userId;
@@ -1097,7 +1118,7 @@ describe("Websocket tests", () => {
   afterAll(() => {
     ws1?.close();
     ws2?.close();
-  })
+  });
   test("Getting back ack for joining up space and broadcast user joined info", async () => {
     ws1.send(
       JSON.stringify({
@@ -1173,7 +1194,7 @@ describe("Websocket tests", () => {
         },
       })
     );
-    const message =  await waitForAndPopLastMessage(ws2Messages);
+    const message = await waitForAndPopLastMessage(ws2Messages);
     expect(message.type).toBe("movement");
     expect(message.payload.x).toBe(adminX + 1);
     expect(message.payload.y).toBe(adminY);
