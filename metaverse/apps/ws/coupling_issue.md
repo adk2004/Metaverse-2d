@@ -1,0 +1,2 @@
+Actually there is tight coupling b/w the sfu and the ws service. I am directly using the sfu service in the ws service. This is not good practice and should be avoided. I have used this type of architechture for simplicity.
+In future , I plant to use a message broker to decouple the two services. The ws service will publish messages to the broker and the sfu service will subscribe to those messages. This way, the two services can communicate without being tightly coupled.

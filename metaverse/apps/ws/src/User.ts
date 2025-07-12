@@ -16,7 +16,7 @@ const generateID = () => {
 }
 
 const isColliding = (spaceId: string, user: User) => {
-    const roomUsers = RoomManager.getInstance().rooms.get(user.spaceId!);
+    const roomUsers = RoomManager.getInstance().rooms.get(spaceId);
     let flag: boolean = true;
     if (roomUsers) {
         for (const u of roomUsers) {
@@ -76,6 +76,7 @@ export class User {
                         this.x = Math.floor(Math.random() * space.width);
                         this.y = Math.floor(Math.random() * space.height);
                     }
+                    // we need to add a media produce logic here
                     this.send({
                         type: "space-joined",
                         payload: {
