@@ -1,3 +1,4 @@
+import { MediaKind } from "mediasoup/types";
 import os, { networkInterfaces } from "os";
 
 const getLocalIp = (): string => {
@@ -35,13 +36,13 @@ export default {
         router: {
             mediaCodecs: [
                 {
-                    kind: 'audio',
+                    kind: 'audio' as MediaKind,
                     mimeType: 'audio/opus',
                     clockRate: 48000,
                     channels: 2
                 },
                 {
-                    kind: 'video',
+                    kind: 'video' as MediaKind,
                     mimeType: 'video/VP8',
                     clockRate: 90000,
                     parameters: {
