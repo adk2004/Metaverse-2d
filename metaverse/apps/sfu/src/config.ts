@@ -1,4 +1,4 @@
-import { MediaKind } from "mediasoup/types";
+import { MediaKind, WorkerLogLevel, WorkerLogTag } from "mediasoup/types";
 import os, { networkInterfaces } from "os";
 
 const getLocalIp = (): string => {
@@ -22,7 +22,7 @@ export default {
         worker: {
             rtcMinPort: 9000,
             rtcMaxPort: 9501,
-            loglevel: 'warn',
+            loglevel: 'warn' as WorkerLogLevel,
             logTags: [
                 'info',
                 'ice',
@@ -31,7 +31,7 @@ export default {
                 'srtp',
                 'rtcp',
                 'simulcast',
-            ]
+            ] as WorkerLogTag[]
         },
         router: {
             mediaCodecs: [
