@@ -4,8 +4,8 @@ import { Peer } from "./Peer";
 import { DtlsParameters, MediaKind, Router, RtpCapabilities, RtpParameters, Worker } from "mediasoup/types";
 
 export class Room {
-    private peers: Map<string, Peer>;
-    private roomId;
+    peers: Map<string, Peer>;
+    roomId;
     private router: Router;
     private io: Server;
     constructor(roomId: string, router: Router, io: Server) {
@@ -14,7 +14,7 @@ export class Room {
         this.io = io;
         this.router = router;
     }
-    async init(roomId: string, worker: Worker, io: Server): Promise<Room> {
+    static async init(roomId: string, worker: Worker, io: Server): Promise<Room> {
         const router = await worker.createRouter({
             mediaCodecs: config.mediasoup.router.mediaCodecs
         })
